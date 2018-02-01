@@ -1,2 +1,2 @@
-* add WiFiManager
 * add OTA fw update
+* add security (encrypt udp payload with mbedtls)
