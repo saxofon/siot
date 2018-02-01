@@ -1,8 +1,15 @@
 #include <ESP8266WiFi.h>
 
+#define WIFIMGR
+#ifdef WIFIMGR
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>
+#endif
+
 #include <Siot.h>
 
-char ssid[] = "ssid";
+char ssid[] = "load-switch";
 char pass[] = "password";
 
 IPAddress mc_ip(239, 0, 0, 1);
@@ -57,13 +64,18 @@ void setup()
 	int status;
 
 	Serial.begin(115200);
-
+ 
+#ifdef WIFIMGR
+  WiFiManager wifiManager;
+  wifiManager.autoConnect(ssid, pass);
+#else
 	WiFi.mode(WIFI_STA);
 	WiFi.begin(ssid, pass);
 
 	while ((status = WiFi.status()) != WL_CONNECTED) {
 		delay(1000);
 	}
+#endif
 
 	String APs = WiFi.BSSIDstr();
 	char AP[80];
@@ -75,7 +87,7 @@ void setup()
 	siot.Init(mc_ip, mc_port);
 
 	pinMode(LED_BUILTIN, OUTPUT);
-//  pinMode(2, INPUT);
+  pinMode(2, INPUT);
 }
 
 void loop()
@@ -87,15 +99,17 @@ void loop()
 	// check for siot messages
 	siot.Rx(sizeof(buf), buf, &len);
 	if (len) {
+    Serial.printf("incoming msg\n");
 		if (strstr(buf, "/load/switch/status")) {
 			parse_status(buf);
 		}
 		len = 0;
-		memset(buf, 512, 0);
+		memset(buf, 0, sizeof(buf));
 	}
-#if 0
+#if 1
 	// check button
 	Ch[ch].button_currentState = digitalRead(2);
+  Serial.printf("button momentary read says %d\n", Ch[ch].button_currentState);
 	if (Ch[ch].button_currentState != Ch[ch].button_lastState) {
 		Ch[ch].button_lastDebounceTime = millis();
 	}
@@ -105,6 +119,7 @@ void loop()
 
 			// only toggle load if the new button debounced state is HIGH
 			if (Ch[ch].button_debouncedState == HIGH) {
+        Serial.printf("button pressed and debounced\n");
 				len = sprintf(buf, "/load/switch/status channel=%d toggle", ch);
 				siot.Tx(buf, len + 1);
 			}
