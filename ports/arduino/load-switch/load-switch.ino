@@ -1,8 +1,15 @@
 #include <ESP8266WiFi.h>
 
+#define WIFIMGR
+#ifdef WIFIMGR
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>
+#endif
+
 #include <Siot.h>
 
-char ssid[] = "ssid";
+char ssid[] = "load-switch";
 char pass[] = "password";
 
 IPAddress mc_ip(239, 0, 0, 1);
@@ -62,12 +69,17 @@ void setup()
 
 	Serial.begin(115200);
 
+#ifdef WIFIMGR
+	WiFiManager wifiManager;
+	wifiManager.autoConnect(ssid, pass);
+#else
 	WiFi.mode(WIFI_STA);
 	WiFi.begin(ssid, pass);
 
 	while ((status = WiFi.status()) != WL_CONNECTED) {
 		delay(1000);
 	}
+#endif
 
 	String APs = WiFi.BSSIDstr();
 	char AP[80];
