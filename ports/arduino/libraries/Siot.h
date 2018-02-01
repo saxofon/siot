@@ -29,7 +29,7 @@ extern "C" {
 class Siot {
       public:
 	Siot(void);
-	void Init(const char *mcip, const int mcport);
+	void Init(const IPAddress mcip, const int mcport);
 	void Tx(const char *buf, const int len);
 	void Rx(const int maxlen, char *buf, int *len);
 #ifdef SECURE

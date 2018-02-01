@@ -4,7 +4,7 @@ Siot::Siot(void)
 {
 }
 
-void Siot::Init(const char mcip[4], const int mcport)
+void Siot::Init(const IPAddress mcip, const int mcport)
 {
 	int status;
 
@@ -12,7 +12,7 @@ void Siot::Init(const char mcip[4], const int mcport)
 	//Serial.printf("ourIP=");
 	//Serial.println(_ourIP);
 
-	_mcIP = IPAddress(mcip[0], mcip[1], mcip[2], mcip[3]);
+	_mcIP = mcip;
 	_mcPort = mcport;
 	//Serial.printf("mcIP=");
 	//Serial.println(_mcIP);

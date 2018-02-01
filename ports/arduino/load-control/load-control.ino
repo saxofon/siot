@@ -5,7 +5,7 @@
 char ssid[] = "ssid";
 char pass[] = "password";
 
-char mc_ip[4] = { 239, 0, 0, 1 };
+IPAddress mc_ip(239, 0, 0, 1);
 
 int mc_port = 2183;
 Siot siot;
@@ -37,8 +37,7 @@ static void parse_status(char *message)
 				return;
 			}
 			continue;
-		}
-		if (strstr(str, "level")) {
+		} else if (strstr(str, "level")) {
 			sscanf(str, "level=%d", &level);
 			continue;
 		}
