@@ -75,16 +75,38 @@ static void *thread_rx(void *arg)
 	}
 }
 
+static void parse_input(char *str)
+{
+	int status;
+	int ch=0;
+	int newch;
+	char *leftovers;
+	char message[50];
+
+	newch=strtol(str, &leftovers, 10);
+	if (str != leftovers) {
+		ch == newch;
+	} else if (str[0] == 't') {
+		printf("requesting channel %d toggling\n", ch);
+		status=sprintf(message, "/load/switch/set channel=%d toggle", ch);
+		siot_transport_send(message, status+1);
+	} else if (str[0] == 'l') {
+		printf("requesting channel %d set to low\n", ch);
+		status=sprintf(message, "/load/switch/set channel=%d level=0", ch);
+		siot_transport_send(message, status+1);
+	} else if (str[0] == 'h') {
+		printf("requesting channel %d set to high\n", ch);
+		status=sprintf(message, "/load/switch/set channel=%d level=1", ch);
+		siot_transport_send(message, status+1);
+	}
+}
+
 /* This thread simulates a user pushing switch 1 button every 2 seconds.. */
 static void *thread_tx(void *arg)
 {
 	int status;
 	char *reply;
 	size_t reply_len;
-	char *leftovers;
-	char message[50];
-	int ch=0;
-	int newch;
 
 
 	while (1) {
@@ -95,22 +117,7 @@ static void *thread_tx(void *arg)
 		if (status>0 && status<79) {
 			reply[status]=0;
 		}
-		newch=strtol(reply, &leftovers, 10);
-		if (reply != leftovers) {
-			ch == newch;
-		} else if (reply[0] == 't') {
-			printf("requesting channel %d toggling\n", ch);
-			status=sprintf(message, "/load/switch/set channel=%d toggle", ch);
-			siot_transport_send(message, status+1);
-		} else if (reply[0] == 'l') {
-			printf("requesting channel %d set to low\n", ch);
-			status=sprintf(message, "/load/switch/set channel=%d level=0", ch);
-			siot_transport_send(message, status+1);
-		} else if (reply[0] == 'h') {
-			printf("requesting channel %d set to high\n", ch);
-			status=sprintf(message, "/load/switch/set channel=%d level=1", ch);
-			siot_transport_send(message, status+1);
-		}
+		parse_input(reply);
 		free(reply);
 	}
 }
@@ -127,6 +134,11 @@ int main(int argc, char* argv[])
 #ifdef SECURE
 	siot_security_init(&_binary_target_priv_pem_start, privkey_size, &_binary_target_pub_pem_start, pubkey_size);
 #endif
+
+	if (argc == 2) {
+		parse_input(argv[1]);
+		return 0;
+	}
 
 	status = pthread_create(&tid_rx, NULL, thread_rx, NULL);
 	status = pthread_create(&tid_tx, NULL, thread_tx, NULL);
